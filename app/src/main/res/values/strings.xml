@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Quantum Duel</string>
+
+    <!-- Ogólne -->
+    <string name="back">Wstecz</string>
+
+    <!-- Tryby -->
+    <string name="mode_slots">🎰 Automat</string>
+    <string name="mode_rps">✊ KPN</string>
+
+    <!-- Ekran gry -->
+    <string name="draw_button">LOSUJ</string>
+    <string name="session_score">%1$d : %2$d</string>
+    <string name="reset_score">Zeruj wynik</string>
+
+    <!-- Tytuły ekranów -->
+    <string name="history_title">Historia i statystyki</string>
+    <string name="settings_title">Ustawienia</string>
+
+    <!-- ETAP WSTĘPNY: teksty zastępcze. Pełna wersja strings.xml ich nie zawiera. -->
+    <string name="placeholder_panel">Bębny, animacja i pomiar kubitów – w budowie</string>
+    <string name="placeholder_history">Ekran w budowie. Zapisanych losowań: %1$d.</string>
+    <string name="placeholder_settings">Ekran w budowie. Domyślnie grają %1$s i %2$s, źródło losowości: %3$s.</string>
+    <string name="planned_title">Planowane funkcje</string>
+
+    <string-array name="plan_history">
+        <item>Karta wygranych: proporcja A : B, liczba rund, udział rund kwantowych</item>
+        <item>Rozkład symboli automatu i ruchów KPN z testem χ² równomierności</item>
+        <item>Lista losowań: data, tryb, wyniki obu okienek, zwycięzca, źródło losowości</item>
+        <item>Czyszczenie historii z oknem potwierdzenia</item>
+    </string-array>
+
+    <string-array name="plan_settings">
+        <item>Nazwy graczy A i B</item>
+        <item>Domyślny tryb gry: automat albo KPN</item>
+        <item>Źródło losowości: ANU, Outshift albo tylko lokalnie (SecureRandom)</item>
+        <item>Klucze API ANU i Outshift z linkami do rejestracji</item>
+        <item>Stan puli entropii i przycisk „Pobierz partię teraz”</item>
+        <item>Dźwięk i wibracja po losowaniu</item>
+    </string-array>
+</resources>
