@@ -1,49 +1,42 @@
-package pl.student.quantumduel.domain.game
+package pl.student.quantumduel.domain.entropy
 
-import pl.student.quantumduel.domain.entropy.EntropyOrigin
+import kotlinx.coroutines.flow.StateFlow
 
-/** Wynik jednego okienka po pomiarze kubitów. [kets] to zmierzone stany, np. "|101⟩". */
-sealed interface PanelResult {
-    val kets: List<String>
+/** Skąd pochodzi bajt losowości. Kolejność = od „najlepszego” do „najsłabszego” źródła. */
+enum class EntropyOrigin(val isQuantum: Boolean) {
+    ANU(isQuantum = true),
+    OUTSHIFT(isQuantum = true),
+    LOCAL(isQuantum = false),
 }
 
-/** Okienko automatu: 3 symbole, każdy z pomiaru 3 kubitów. */
-data class SlotsPanel(
-    val symbols: List<SlotSymbol>,
-    override val kets: List<String>,
-) : PanelResult {
-    val hand: SlotHand get() = SlotHand.of(symbols)
+/** Jeden bajt losowości (0–255) wraz ze źródłem. */
+data class EntropyByte(val value: Int, val origin: EntropyOrigin) {
+    init {
+        require(value in 0..255) { "Bajt musi być w zakresie 0–255, otrzymano $value" }
+    }
 }
 
-/**
- * Okienko KPN. [kets] zawiera wszystkie pomiary, łącznie z odrzuconymi |11⟩;
- * ostatni element to pomiar, który dał [move].
- */
-data class RpsPanel(
-    val move: RpsMove,
-    override val kets: List<String>,
-) : PanelResult {
-    val rejectedMeasurements: Int get() = kets.size - 1
+/** Stan puli entropii pokazywany w interfejsie. */
+data class EntropyStatus(
+    val pooledBytes: Int = 0,
+    val lastOrigin: EntropyOrigin? = null,
+    val isFetching: Boolean = false,
+    val lastError: String? = null,
+    val quantumConfigured: Boolean = false,
+)
+
+/** Dowolne źródło kolejnych bajtów – używane przez symulator kubitów do pomiaru. */
+interface ByteSource {
+    suspend fun nextByte(): Int
 }
 
-/**
- * Rozstrzygnięty pojedynek.
- *
- * @param attempts ile razy mierzono oba okienka (1 = bez remisu, 2 = jeden remis itd.)
- * @param measuredQubits ile pomiarów kubitów (= zużytych bajtów) wymagała runda
- * @param origin najsłabsze źródło użyte w rundzie (LOCAL, jeśli choć jeden bajt był lokalny)
- */
-data class DuelRound(
-    val mode: GameMode,
-    val panelA: PanelResult,
-    val panelB: PanelResult,
-    val winner: Player,
-    val attempts: Int,
-    val measuredQubits: Int,
-    val origin: EntropyOrigin,
-    val timestampMillis: Long,
-) {
-    val ties: Int get() = attempts - 1
+/** Kontrakt warstwy danych: dostarcza bajty z QRNG (lub lokalnie, gdy brak sieci). */
+interface EntropyRepository {
+    val status: StateFlow<EntropyStatus>
 
-    fun panelOf(player: Player): PanelResult = if (player == Player.A) panelA else panelB
+    /** Zwraca kolejny, nieużyty wcześniej bajt. Nigdy nie rzuca wyjątku – w razie problemów przełącza się na SecureRandom. */
+    suspend fun nextByte(): EntropyByte
+
+    /** Pobiera partię bajtów w tle. [force] = pomiń karencję po błędzie i pobierz nawet przy pełnej puli. */
+    fun prefetch(force: Boolean = false)
 }
