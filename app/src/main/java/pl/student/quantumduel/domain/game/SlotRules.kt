@@ -29,20 +29,22 @@ enum class SlotHandType(val rank: Int) {
 /**
  * Układ trzech symboli. Porównanie: trójka > para > brak układu;
  * przy tym samym typie wygrywa wyższa suma punktów. Równe układy = remis.
- *
- * ETAP WSTĘPNY: model gotowy, reguły do zaimplementowania.
  */
 data class SlotHand(val type: SlotHandType, val points: Int) : Comparable<SlotHand> {
 
-    override fun compareTo(other: SlotHand): Int {
-        // TODO: najpierw porównać type.rank, a przy równym typie – points
-        TODO("SlotHand.compareTo")
-    }
+    override fun compareTo(other: SlotHand): Int =
+        compareValuesBy(this, other, { it.type.rank }, { it.points })
 
     companion object {
         fun of(symbols: List<SlotSymbol>): SlotHand {
-            // TODO: policzyć powtórzenia symboli (3 → TRIPLE, 2 → PAIR, inaczej HIGH) i zsumować punkty
-            TODO("SlotHand.of")
+            require(symbols.isNotEmpty()) { "Układ wymaga co najmniej jednego symbolu" }
+            val maxSame = symbols.groupingBy { it }.eachCount().values.max()
+            val type = when {
+                maxSame >= 3 -> SlotHandType.TRIPLE
+                maxSame == 2 -> SlotHandType.PAIR
+                else -> SlotHandType.HIGH
+            }
+            return SlotHand(type, symbols.sumOf { it.points })
         }
     }
 }

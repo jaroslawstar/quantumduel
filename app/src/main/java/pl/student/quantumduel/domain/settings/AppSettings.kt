@@ -28,7 +28,7 @@ data class AppSettings(
     /** Czy jest skonfigurowane jakiekolwiek źródło kwantowe. */
     val quantumConfigured: Boolean
         get() = randomnessSource != RandomnessSource.LOCAL &&
-            (anuApiKey.isNotBlank() || outshiftApiKey.isNotBlank())
+                (anuApiKey.isNotBlank() || outshiftApiKey.isNotBlank())
 
     companion object {
         const val DEFAULT_PLAYER_A = "Gracz A"

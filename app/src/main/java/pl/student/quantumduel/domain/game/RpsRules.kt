@@ -4,17 +4,16 @@ package pl.student.quantumduel.domain.game
  * Ruch w kamień–papier–nożyczki. Indeks to wynik pomiaru 2 kubitów:
  * |00⟩ kamień, |01⟩ papier, |10⟩ nożyczki. Wynik |11⟩ jest odrzucany i mierzony ponownie,
  * dzięki czemu każdy ruch ma dokładnie 1/3 szans.
- *
- * ETAP WSTĘPNY: model gotowy, reguła [beats] do zaimplementowania.
  */
 enum class RpsMove {
     ROCK,
     PAPER,
     SCISSORS;
 
-    fun beats(other: RpsMove): Boolean {
-        // TODO: kamień bije nożyczki, papier bije kamień, nożyczki biją papier
-        TODO("RpsMove.beats")
+    fun beats(other: RpsMove): Boolean = when (this) {
+        ROCK -> other == SCISSORS
+        PAPER -> other == ROCK
+        SCISSORS -> other == PAPER
     }
 
     companion object {

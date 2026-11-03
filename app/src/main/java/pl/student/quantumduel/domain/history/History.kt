@@ -7,7 +7,9 @@ import pl.student.quantumduel.domain.game.GameMode
 import pl.student.quantumduel.domain.game.PanelResult
 import pl.student.quantumduel.domain.game.Player
 import pl.student.quantumduel.domain.game.RpsMove
+import pl.student.quantumduel.domain.game.RpsPanel
 import pl.student.quantumduel.domain.game.SlotSymbol
+import pl.student.quantumduel.domain.game.SlotsPanel
 
 /** Skrócony wynik okienka zapisywany w historii. */
 sealed interface PanelSummary {
@@ -15,10 +17,9 @@ sealed interface PanelSummary {
     data class Rps(val move: RpsMove) : PanelSummary
 }
 
-/** Wynik okienka → skrót do historii. ETAP WSTĘPNY. */
-fun PanelResult.toSummary(): PanelSummary {
-    // TODO: SlotsPanel → PanelSummary.Slots(symbols), RpsPanel → PanelSummary.Rps(move)
-    TODO("PanelResult.toSummary")
+fun PanelResult.toSummary(): PanelSummary = when (this) {
+    is SlotsPanel -> PanelSummary.Slots(symbols)
+    is RpsPanel -> PanelSummary.Rps(move)
 }
 
 /** Jeden wpis historii losowań. */

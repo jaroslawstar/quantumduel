@@ -1,17 +1,17 @@
 package pl.student.quantumduel.domain.quantum
 
 import pl.student.quantumduel.domain.entropy.ByteSource
+import kotlin.math.sqrt
 
 /**
  * Symulator rejestru [qubitCount] kubitów oparty na wektorze stanu (2^n amplitud zespolonych).
  *
- * ETAP WSTĘPNY: struktura danych i sygnatury są gotowe, obliczenia są do zaimplementowania.
+ * Kubit 0 jest najbardziej znaczącym bitem, więc stan |q0 q1 q2⟩ czytamy od lewej.
+ * Rejestr startuje w stanie |00…0⟩.
  *
- * Założenia:
- * - kubit 0 jest najbardziej znaczącym bitem, więc stan |q0 q1 q2⟩ czytamy od lewej,
- * - rejestr startuje w stanie |00…0⟩,
- * - pomiar stosuje regułę Borna: bajt b (0–255) z puli entropii daje u = b / 256, a wynik to 0, gdy u < P(0),
- * - po pomiarze stan kolapsuje: amplitudy niezgodne z wynikiem są zerowane, pozostałe normalizowane.
+ * Pomiar stosuje regułę Borna: P(0) = suma |α|² po stanach, w których dany kubit ma wartość 0.
+ * Losowość pomiaru pochodzi z jednego bajtu b (0–255): u = b / 256, wynik 0 gdy u < P(0).
+ * Po bramce Hadamarda P(0) = 0,5, więc bajty 0–127 dają 0, a 128–255 dają 1 – rozkład dokładnie równy.
  */
 class QuantumRegister(val qubitCount: Int) {
 
@@ -20,26 +20,42 @@ class QuantumRegister(val qubitCount: Int) {
     }
 
     private val dimension = 1 shl qubitCount
-
-    /** Wektor stanu: jedna amplituda na każdy z 2^n stanów bazowych. Start: |00…0⟩. */
     private val amplitudes = Array(dimension) { index -> if (index == 0) Complex.ONE else Complex.ZERO }
+
+    private fun mask(qubit: Int): Int {
+        require(qubit in 0 until qubitCount) { "Brak kubitu o indeksie $qubit" }
+        return 1 shl (qubitCount - 1 - qubit)
+    }
 
     /** Nakłada bramkę na wybrany kubit. */
     fun apply(gate: Gate, qubit: Int): QuantumRegister {
-        // TODO: dla każdej pary amplitud różniących się tylko bitem [qubit] pomnożyć je przez macierz bramki 2×2
-        TODO("QuantumRegister.apply – mnożenie wektora stanu przez bramkę")
+        val m = mask(qubit)
+        for (i in 0 until dimension) {
+            if (i and m == 0) {
+                val j = i or m
+                val a0 = amplitudes[i]
+                val a1 = amplitudes[j]
+                amplitudes[i] = gate.m00 * a0 + gate.m01 * a1
+                amplitudes[j] = gate.m10 * a0 + gate.m11 * a1
+            }
+        }
+        return this
     }
 
     /** Nakłada tę samą bramkę na każdy kubit (np. H⊗H⊗H). */
     fun applyToAll(gate: Gate): QuantumRegister {
-        // TODO: wywołać apply(gate, q) dla każdego kubitu q
-        TODO("QuantumRegister.applyToAll")
+        for (q in 0 until qubitCount) apply(gate, q)
+        return this
     }
 
     /** Prawdopodobieństwo, że pomiar kubitu da 0. */
     fun probabilityOfZero(qubit: Int): Double {
-        // TODO: suma |α|² po stanach bazowych, w których bit [qubit] ma wartość 0
-        TODO("QuantumRegister.probabilityOfZero")
+        val m = mask(qubit)
+        var p = 0.0
+        for (i in 0 until dimension) {
+            if (i and m == 0) p += amplitudes[i].abs2
+        }
+        return p
     }
 
     /** Prawdopodobieństwa wszystkich stanów bazowych (suma = 1). */
@@ -49,23 +65,36 @@ class QuantumRegister(val qubitCount: Int) {
 
     /** Mierzy jeden kubit, zużywając jeden bajt ze źródła, i kolapsuje stan. */
     suspend fun measure(qubit: Int, source: ByteSource): Int {
-        // TODO: u = source.nextByte() / 256.0; wynik = if (u < P(0)) 0 else 1; potem kolaps i normalizacja stanu
-        TODO("QuantumRegister.measure – pomiar według reguły Borna")
+        val p0 = probabilityOfZero(qubit)
+        val u = (source.nextByte() and 0xFF) / 256.0
+        val outcome = if (u < p0) 0 else 1
+        collapse(qubit, outcome, if (outcome == 0) p0 else 1.0 - p0)
+        return outcome
     }
 
     /** Mierzy kolejno wszystkie kubity; zwraca bity od kubitu 0. */
     suspend fun measureAll(source: ByteSource): List<Int> {
-        // TODO: measure(q, source) dla każdego kubitu, wyniki w kolejności od kubitu 0
-        TODO("QuantumRegister.measureAll")
+        val bits = ArrayList<Int>(qubitCount)
+        for (q in 0 until qubitCount) bits += measure(q, source)
+        return bits
+    }
+
+    private fun collapse(qubit: Int, outcome: Int, probability: Double) {
+        val m = mask(qubit)
+        val norm = 1.0 / sqrt(probability)
+        for (i in 0 until dimension) {
+            val bit = if (i and m == 0) 0 else 1
+            amplitudes[i] = if (bit == outcome) amplitudes[i] * norm else Complex.ZERO
+        }
     }
 
     companion object {
         const val MAX_QUBITS = 10
 
         /** Zapis Diraca, np. [1, 0, 1] → "|101⟩". */
-        fun ket(bits: List<Int>): String = TODO("QuantumRegister.ket")
+        fun ket(bits: List<Int>): String = bits.joinToString(separator = "", prefix = "|", postfix = "⟩")
 
         /** Bity (kubit 0 = najstarszy) → liczba, np. [1, 0, 1] → 5. */
-        fun toIndex(bits: List<Int>): Int = TODO("QuantumRegister.toIndex")
+        fun toIndex(bits: List<Int>): Int = bits.fold(0) { acc, bit -> (acc shl 1) or bit }
     }
 }
