@@ -4,39 +4,95 @@
 
     <!-- Ogólne -->
     <string name="back">Wstecz</string>
+    <string name="cancel">Anuluj</string>
+    <string name="open_settings">Ustawienia</string>
 
-    <!-- Tryby -->
+    <!-- Tryby i symbole -->
     <string name="mode_slots">🎰 Automat</string>
     <string name="mode_rps">✊ KPN</string>
+    <string name="symbol_cherry">Wiśnia</string>
+    <string name="symbol_lemon">Cytryna</string>
+    <string name="symbol_orange">Pomarańcza</string>
+    <string name="symbol_grape">Winogrona</string>
+    <string name="symbol_bell">Dzwonek</string>
+    <string name="symbol_star">Gwiazda</string>
+    <string name="symbol_diamond">Diament</string>
+    <string name="symbol_seven">Siódemka</string>
+    <string name="move_rock">Kamień</string>
+    <string name="move_paper">Papier</string>
+    <string name="move_scissors">Nożyczki</string>
+    <string name="hand_triple">Trójka</string>
+    <string name="hand_pair">Para</string>
+    <string name="hand_high">Bez układu</string>
+    <string name="hand_description">%1$s · %2$d pkt</string>
+
+    <!-- Źródła losowości -->
+    <string name="origin_anu">Kwantowe (ANU)</string>
+    <string name="origin_outshift">Kwantowe (Outshift)</string>
+    <string name="origin_local">Lokalne (SecureRandom)</string>
 
     <!-- Ekran gry -->
     <string name="draw_button">LOSUJ</string>
+    <string name="winner_chip">WYGRYWA</string>
+    <string name="session_wins">🏆 %1$d</string>
     <string name="session_score">%1$d : %2$d</string>
     <string name="reset_score">Zeruj wynik</string>
+    <string name="measuring">Pomiar kubitów…</string>
+    <string name="measuring_mode">Mierzę kubity (%1$s)…</string>
+    <string name="round_measurements">Pomiarów: %1$d · kubitów: %2$d</string>
+    <string name="round_ties">Remisy: %1$d → pomiar ponowiony</string>
+    <string name="pool_bytes">Pula QRNG: %1$d B</string>
+    <string name="pool_fetching">Pobieram bajty z QRNG…</string>
+    <string name="pool_local">Losowość lokalna</string>
+    <string name="missing_key_hint">Brak klucza API – losowanie korzysta z lokalnego SecureRandom.</string>
 
-    <!-- Tytuły ekranów -->
+    <!-- Historia -->
     <string name="history_title">Historia i statystyki</string>
+    <string name="history_empty">Brak losowań. Wróć do gry i naciśnij LOSUJ.</string>
+    <string name="history_recent">Ostatnie losowania</string>
+    <string name="history_row_summary">Wygrywa %1$s · pomiarów okienek: %2$d · kubitów: %3$d</string>
+    <string name="history_clear">Wyczyść historię</string>
+    <string name="history_clear_title">Wyczyścić historię?</string>
+    <string name="history_clear_text">Usunąć wszystkie zapisane losowania? Tej operacji nie można cofnąć.</string>
+    <string name="history_clear_confirm">Wyczyść</string>
+    <string name="stats_title">Wygrane</string>
+    <string name="stats_summary">Rund: %1$d · kwantowych: %2$d%% · średnio %3$.2f pomiaru okienek na rundę</string>
+    <string name="distribution_slots">Rozkład symboli (automat)</string>
+    <string name="distribution_rps">Rozkład ruchów (KPN)</string>
+    <string name="distribution_expected">Oczekiwany udział każdej kategorii: %1$.1f%%</string>
+    <string name="chi_square_ok">χ² = %1$.2f (próg %2$.2f, df = %3$d): wyniki zgodne z rozkładem równomiernym.</string>
+    <string name="chi_square_bad">χ² = %1$.2f (próg %2$.2f, df = %3$d): rozkład odbiega od równomiernego (p &lt; 0,05).</string>
+    <string name="chi_square_not_enough">Za mało losowań do testu χ² (potrzeba średnio co najmniej 5 wyników na kategorię).</string>
+
+    <!-- Ustawienia -->
     <string name="settings_title">Ustawienia</string>
-
-    <!-- ETAP WSTĘPNY: teksty zastępcze. Pełna wersja strings.xml ich nie zawiera. -->
-    <string name="placeholder_panel">Bębny, animacja i pomiar kubitów – w budowie</string>
-    <string name="placeholder_history">Ekran w budowie. Zapisanych losowań: %1$d.</string>
-    <string name="placeholder_settings">Ekran w budowie. Domyślnie grają %1$s i %2$s, źródło losowości: %3$s.</string>
-    <string name="planned_title">Planowane funkcje</string>
-
-    <string-array name="plan_history">
-        <item>Karta wygranych: proporcja A : B, liczba rund, udział rund kwantowych</item>
-        <item>Rozkład symboli automatu i ruchów KPN z testem χ² równomierności</item>
-        <item>Lista losowań: data, tryb, wyniki obu okienek, zwycięzca, źródło losowości</item>
-        <item>Czyszczenie historii z oknem potwierdzenia</item>
-    </string-array>
-
-    <string-array name="plan_settings">
-        <item>Nazwy graczy A i B</item>
-        <item>Domyślny tryb gry: automat albo KPN</item>
-        <item>Źródło losowości: ANU, Outshift albo tylko lokalnie (SecureRandom)</item>
-        <item>Klucze API ANU i Outshift z linkami do rejestracji</item>
-        <item>Stan puli entropii i przycisk „Pobierz partię teraz”</item>
-        <item>Dźwięk i wibracja po losowaniu</item>
-    </string-array>
+    <string name="settings_players">Gracze</string>
+    <string name="settings_player_a">Gracz A (górne okienko)</string>
+    <string name="settings_player_b">Gracz B (dolne okienko)</string>
+    <string name="settings_default_mode">Domyślny tryb gry</string>
+    <string name="settings_source">Źródło losowości</string>
+    <string name="source_anu">ANU Quantum Numbers</string>
+    <string name="source_anu_desc">Fluktuacje próżni mierzone w laboratorium ANU. Zapasowo Outshift, bez sieci SecureRandom.</string>
+    <string name="source_outshift">Outshift QRNG (Cisco)</string>
+    <string name="source_outshift_desc">Szum kwantowej próżni na sprzęcie Cisco. Zapasowo ANU, bez sieci SecureRandom.</string>
+    <string name="source_local">Tylko lokalnie</string>
+    <string name="source_local_desc">SecureRandom systemu Android – działa bez internetu, ale nie jest kwantowy.</string>
+    <string name="settings_keys">Klucze API</string>
+    <string name="key_anu">Klucz API ANU</string>
+    <string name="key_outshift">Klucz API Outshift</string>
+    <string name="key_show">Pokaż</string>
+    <string name="key_hide">Ukryj</string>
+    <string name="key_missing">Brak klucza – to źródło zostanie pominięte</string>
+    <string name="key_saved">Klucz zapisany tylko na tym urządzeniu</string>
+    <string name="key_get">Zdobądź darmowy klucz: %1$s</string>
+    <string name="keys_quota_note">Darmowy klucz ANU ma limit ok. 100 zapytań miesięcznie. Jedno zapytanie to 1024 bajty, czyli ok. 50 rund automatu.</string>
+    <string name="settings_pool">Pula entropii</string>
+    <string name="pool_status_bytes">Bajtów w puli: %1$d</string>
+    <string name="pool_status_last">Ostatnio użyte źródło: %1$s</string>
+    <string name="pool_status_none">jeszcze brak</string>
+    <string name="pool_status_error">Ostatni błąd: %1$s</string>
+    <string name="pool_fetch_now">Pobierz partię teraz</string>
+    <string name="settings_effects">Efekty</string>
+    <string name="settings_sound">Dźwięk po losowaniu</string>
+    <string name="settings_vibration">Wibracja po losowaniu</string>
 </resources>

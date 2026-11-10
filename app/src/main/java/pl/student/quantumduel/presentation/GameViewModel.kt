@@ -1,14 +1,18 @@
 package pl.student.quantumduel.presentation
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import pl.student.quantumduel.domain.entropy.EntropyRepository
 import pl.student.quantumduel.domain.entropy.EntropyStatus
 import pl.student.quantumduel.domain.game.DuelRound
@@ -66,10 +70,6 @@ sealed interface GameEffect {
     data class RoundFinished(val winner: Player, val playSound: Boolean, val vibrate: Boolean) : GameEffect
 }
 
-/**
- * ViewModel ekranu gry. ETAP WSTĘPNY: stan i zdarzenia są zdefiniowane, a zależności wstrzykiwane przez Hilt,
- * ale losowanie nie jest jeszcze podłączone.
- */
 @HiltViewModel
 class GameViewModel @Inject constructor(
     private val playRound: PlayRoundUseCase,
@@ -84,8 +84,32 @@ class GameViewModel @Inject constructor(
     private val _effects = Channel<GameEffect>(Channel.BUFFERED)
     val effects: Flow<GameEffect> = _effects.receiveAsFlow()
 
-    // TODO (init): subskrypcja settingsRepository.settings (nazwy graczy, tryb domyślny, źródło losowości),
-    //              subskrypcja entropyRepository.status oraz entropyRepository.prefetch()
+    private var settings = AppSettings()
+    private var defaultModeApplied = false
+
+    init {
+        viewModelScope.launch {
+            settingsRepository.settings.collect { s ->
+                settings = s
+                _uiState.update { state ->
+                    state.copy(
+                        playerAName = s.playerAName.ifBlank { AppSettings.DEFAULT_PLAYER_A },
+                        playerBName = s.playerBName.ifBlank { AppSettings.DEFAULT_PLAYER_B },
+                        randomnessSource = s.randomnessSource,
+                        quantumConfigured = s.quantumConfigured,
+                        // Tryb domyślny ustawiamy tylko raz – późniejsza zmiana ustawień nie przerywa gry.
+                        mode = if (defaultModeApplied || state.isBusy) state.mode else s.defaultMode,
+                    )
+                }
+                defaultModeApplied = true
+            }
+        }
+        viewModelScope.launch {
+            entropyRepository.status.collect { status -> _uiState.update { it.copy(entropy = status) } }
+        }
+        // Pierwsza partia bajtów pobiera się w tle, więc pierwsze kliknięcie nie czeka na sieć.
+        entropyRepository.prefetch()
+    }
 
     fun onModeSelected(mode: GameMode) {
         if (_uiState.value.isBusy || _uiState.value.mode == mode) return
@@ -93,10 +117,49 @@ class GameViewModel @Inject constructor(
     }
 
     fun onDrawClicked() {
-        // TODO: faza SPINNING → playRound(mode) → co najmniej MIN_SPIN_MILLIS animacji →
-        //       REVEALING (bęben po bębnie co REEL_STOP_DELAY_MILLIS) → REVEALED → wynik sesji →
-        //       efekt RoundFinished → historyRepository.save(round)
-        _uiState.update { it.copy(errorMessage = NOT_IMPLEMENTED_MESSAGE) }
+        val start = _uiState.value
+        if (start.isBusy) return
+        _uiState.update { it.copy(phase = DrawPhase.SPINNING, round = null, revealedSlots = 0, errorMessage = null) }
+
+        viewModelScope.launch {
+            val startedAt = System.currentTimeMillis()
+            val round = try {
+                playRound(start.mode)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.update { it.copy(phase = DrawPhase.IDLE, errorMessage = e.message ?: "Nieznany błąd losowania") }
+                return@launch
+            }
+
+            // Animacja kręcenia trwa co najmniej chwilę, nawet gdy bajty były już w puli.
+            val elapsed = System.currentTimeMillis() - startedAt
+            if (elapsed < MIN_SPIN_MILLIS) delay(MIN_SPIN_MILLIS - elapsed)
+
+            _uiState.update { it.copy(phase = DrawPhase.REVEALING, round = round, revealedSlots = 0) }
+            val positions = if (round.mode == GameMode.SLOTS) PlayRoundUseCase.REELS else 1
+            for (i in 1..positions) {
+                delay(REEL_STOP_DELAY_MILLIS)
+                _uiState.update { it.copy(revealedSlots = i) }
+            }
+
+            _uiState.update {
+                it.copy(
+                    phase = DrawPhase.REVEALED,
+                    sessionWinsA = it.sessionWinsA + if (round.winner == Player.A) 1 else 0,
+                    sessionWinsB = it.sessionWinsB + if (round.winner == Player.B) 1 else 0,
+                )
+            }
+            _effects.send(GameEffect.RoundFinished(round.winner, settings.soundEnabled, settings.vibrationEnabled))
+
+            try {
+                historyRepository.save(round)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = "Nie zapisano rundy w historii: ${e.message}") }
+            }
+        }
     }
 
     fun onResetScore() {
@@ -111,6 +174,5 @@ class GameViewModel @Inject constructor(
     companion object {
         const val MIN_SPIN_MILLIS = 900L
         const val REEL_STOP_DELAY_MILLIS = 280L
-        private const val NOT_IMPLEMENTED_MESSAGE = "Etap wstępny: losowanie nie jest jeszcze zaimplementowane"
     }
 }
